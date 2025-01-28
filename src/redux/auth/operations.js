@@ -1,47 +1,55 @@
 import axios from 'axios';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 
-axios.defaults.baseURL = 'https://task-manager-api.goit.global/';
+axios.defaults.baseURL = 'https://task-manager-api.goit.global/'; // Базовий URL для запитів
 
-// Utility to add JWT
-const setAuthHeader = (token) => {
+// Функція для додавання токена до заголовків запитів
+const setAuthHeader = token => {
+  // Додаємо токен до заголовка Authorization у всіх запитах
   axios.defaults.headers.common.Authorization = `Bearer ${token}`;
 };
 
-// Utility to remove JWT
+// Функція для очищення токена з заголовків запитів
 const clearAuthHeader = () => {
+  // Очищаємо заголовок Authorization
   axios.defaults.headers.common.Authorization = '';
 };
 
 /*
- * POST @ /users/signup
+ * Операція реєстрації користувача
+ * POST запит на /users/signup
  * body: { name, email, password }
  */
 export const register = createAsyncThunk(
-  'auth/register',
+  'auth/register', // Назва операції
   async (credentials, thunkAPI) => {
     try {
+      // POST запит для реєстрації користувача
       const res = await axios.post('/users/signup', credentials);
-      // After successful registration, add the token to the HTTP header
+      // Після успішної реєстрації додаємо токен у заголовок (headers) запиту
       setAuthHeader(res.data.token);
-      return res.data;
+      return res.data; // Повертаємо дані користувача (якщо реєстрація була успішною)
     } catch (error) {
+      // Якщо сталася помилка, відхиляємо операцію з помилкою
       return thunkAPI.rejectWithValue(error.message);
     }
   }
 );
 
 /*
- * POST @ /users/login
+ * Операція логіну користувача
+ * POST запит на /users/login
  * body: { email, password }
  */
 export const logIn = createAsyncThunk(
-  'auth/login',
+  'auth/login', // Назва операції
   async (credentials, thunkAPI) => {
     try {
+      // POST запит для входу користувача
       const res = await axios.post('/users/login', credentials);
-      // After successful login, add the token to the HTTP header
+      // Після успішного логіну додаємо токен у заголовок запиту
       setAuthHeader(res.data.token);
+      // Повертаємо дані користувача та токен
       return res.data;
     } catch (error) {
       return thunkAPI.rejectWithValue(error.message);
@@ -50,13 +58,15 @@ export const logIn = createAsyncThunk(
 );
 
 /*
- * POST @ /users/logout
- * headers: Authorization: Bearer token
+ * Операція лог-ауту користувача
+ * POST запит на /users/logout
+ * Заголовок: Authorization: Bearer token
  */
 export const logOut = createAsyncThunk('auth/logout', async (_, thunkAPI) => {
   try {
+    // POST запит для завершення сесії (лог-ауту)
     await axios.post('/users/logout');
-    // After a successful logout, remove the token from the HTTP header
+    // Після успішного лог-ауту очищаємо токен з заголовків (headers)
     clearAuthHeader();
   } catch (error) {
     return thunkAPI.rejectWithValue(error.message);
@@ -64,25 +74,28 @@ export const logOut = createAsyncThunk('auth/logout', async (_, thunkAPI) => {
 });
 
 /*
- * GET @ /users/me
- * headers: Authorization: Bearer token
+ * Операція для оновлення даних користувача
+ * GET запит на /users/me
+ * Заголовок: Authorization: Bearer token
  */
 export const refreshUser = createAsyncThunk(
   'auth/refresh',
   async (_, thunkAPI) => {
-    // Reading the token from the state via getState()
+    // Отримуємо поточний стан Redux (зберігається токен у стані)
     const state = thunkAPI.getState();
-    const persistedToken = state.auth.token;
+    const persistedToken = state.auth.token; // Отримуємо токен з стану
 
+    // Якщо токена немає, повертаємо помилку
     if (persistedToken === null) {
-      // If there is no token, exit without performing any request
       return thunkAPI.rejectWithValue('Unable to fetch user');
     }
 
     try {
-      // If there is a token, add it to the HTTP header and perform the request
+      // Якщо токен є, додаємо його до заголовків запитів (headers)
       setAuthHeader(persistedToken);
+      // GET запит для отримання даних користувача
       const res = await axios.get('/users/me');
+      // Повертаємо дані користувача, якщо запит успішний
       return res.data;
     } catch (error) {
       return thunkAPI.rejectWithValue(error.message);
