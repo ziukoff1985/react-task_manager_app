@@ -1,3 +1,4 @@
+/* global process */
 import { configureStore } from '@reduxjs/toolkit';
 import {
   persistStore,

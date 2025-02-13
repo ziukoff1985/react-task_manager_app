@@ -1,66 +1,53 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { logOut } from '../auth/operations'; // Oперація logOut з файлу 'auth/operations.js'
-
-// Асинхронні операції 'createAsyncThunk' з файлу 'tasks/operations.js'
+import { logOut } from '../auth/operations';
 import { fetchTasks, addTask, deleteTask } from './operations';
 
-// Функція для обробки стану "pending"
 const handlePending = state => {
-  state.isLoading = true; // Встановлюємо статус завантаження
+  state.isLoading = true;
 };
 
-// Функція для обробки помилок 'rejected'
 const handleRejected = (state, action) => {
-  state.isLoading = false; // Встановлюємо статус завершення завантаження
-  state.error = action.payload; // Зберігаємо повідомлення про помилку
+  state.isLoading = false;
+  state.error = action.payload;
 };
 
-// Cлайс для управління завданнями
 const tasksSlice = createSlice({
-  name: 'tasks', // Ім'я слайса
+  name: 'tasks',
   initialState: {
-    items: [], // Масив завдань
-    isLoading: false, // Статус завантаження
-    error: null, // Повідомлення про помилку
+    items: [],
+    isLoading: false,
+    error: null,
   },
-  // 'extraReducers' для обробки 'зовнішніх екшенів' з асинхронних операцій, створених через createAsyncThunk (в файлі auth/operations.js)
   extraReducers: builder => {
     builder
-      .addCase(fetchTasks.pending, handlePending) // Початок запиту
-      // Якщо запит успішно виконано
+      .addCase(fetchTasks.pending, handlePending)
       .addCase(fetchTasks.fulfilled, (state, action) => {
-        state.isLoading = false; // Завершення завантаження
-        state.error = null; // Очистка помилки
-        state.items = action.payload; // Оновлення списку завдань
+        state.isLoading = false;
+        state.error = null;
+        state.items = action.payload;
       })
-      // Якщо запит не вдалося виконати
       .addCase(fetchTasks.rejected, handleRejected)
-      .addCase(addTask.pending, handlePending) // Початок додавання завдання
-      // Якщо завдання успішно додано
+      .addCase(addTask.pending, handlePending)
       .addCase(addTask.fulfilled, (state, action) => {
-        state.isLoading = false; // Завершення завантаження
-        state.error = null; // Очистка помилки
-        state.items.push(action.payload); // Додавання нового завдання до списку
+        state.isLoading = false;
+        state.error = null;
+        state.items.push(action.payload);
       })
-      .addCase(addTask.rejected, handleRejected) // Якщо додавання не вдалося
-      .addCase(deleteTask.pending, handlePending) // Початок видалення завдання
-      // Якщо завдання успішно видалено
+      .addCase(addTask.rejected, handleRejected)
+      .addCase(deleteTask.pending, handlePending)
       .addCase(deleteTask.fulfilled, (state, action) => {
-        state.isLoading = false; // Завершення завантаження
-        state.error = null; // Очистка помилки
-        // Знаходимо завдання за його id
+        state.isLoading = false;
+        state.error = null;
         const index = state.items.findIndex(
           task => task.id === action.payload.id
         );
-        // Видаляємо завдання з масиву
         state.items.splice(index, 1);
       })
-      .addCase(deleteTask.rejected, handleRejected) // Якщо видалення не вдалося
-      // Якщо вихід з системи успішний
+      .addCase(deleteTask.rejected, handleRejected)
       .addCase(logOut.fulfilled, state => {
-        state.items = []; // Очищення списку завдань
-        state.error = null; // Очистка помилки
-        state.isLoading = false; // Встановлення статусу завершення завантаження
+        state.items = [];
+        state.error = null;
+        state.isLoading = false;
       });
   },
 });
